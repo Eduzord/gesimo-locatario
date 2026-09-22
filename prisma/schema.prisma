@@ -50,6 +50,42 @@ model PessoaJuridica {
   @@map("pessoajuridica")
 }
 
+enum TipoConta {
+  CORRENTE
+  POUPANCA
+}
+
+enum TipoChavePix {
+  CPF
+  CNPJ
+  EMAIL
+  TELEFONE
+  ALEATORIA
+}
+
+// Catálogo de contas de depósito (não é PII de um locatário específico — é onde o sistema instrui
+// depositar o aluguel; normalmente a conta da própria imobiliária). Fica aqui, no serviço de
+// locatários, por decisão do time; ADMIN e USER podem cadastrar/editar (sem restrição de papel).
+model ContaBancaria {
+  id               Int           @id @default(autoincrement())
+  descricao        String        @db.VarChar(100)
+  titular          String        @db.VarChar(150)
+  documentoTitular String        @map("documento_titular") @db.VarChar(20)
+  banco            String        @db.VarChar(100)
+  codigoBanco      String?       @map("codigo_banco") @db.VarChar(10)
+  agencia          String        @db.VarChar(20)
+  numeroConta      String        @map("numero_conta") @db.VarChar(30)
+  tipoConta        TipoConta     @default(CORRENTE) @map("tipo_conta")
+  tipoChavePix     TipoChavePix? @map("tipo_chave_pix")
+  chavePix         String?       @map("chave_pix") @db.VarChar(140)
+  padrao           Boolean       @default(false)
+  status           Status        @default(ATIVO)
+  criadoEm         DateTime      @default(now()) @map("criado_em")
+  atualizadoEm     DateTime      @default(now()) @updatedAt @map("atualizado_em")
+
+  @@map("conta_bancaria")
+}
+
 
 
 // generator client {

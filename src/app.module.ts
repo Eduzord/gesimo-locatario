@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { LocatarioModule } from './locatario/locatario.module';
 import { PessoafisicaModule } from './pessoafisica/pessoafisica.module';
 import { PessoajuridicaModule } from './pessoajuridica/pessoajuridica.module';
+import { ContaBancariaModule } from './conta-bancaria/conta-bancaria.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { PessoajuridicaModule } from './pessoajuridica/pessoajuridica.module';
     LocatarioModule,
     PessoafisicaModule,
     PessoajuridicaModule,
+    ContaBancariaModule,
     HealthModule
   ],
 })
