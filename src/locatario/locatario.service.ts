@@ -22,6 +22,38 @@ export class LocatarioService {
   constructor(private readonly prisma: PrismaService) {}
 
   //----------------------------------------
+  // BUSCA
+  //----------------------------------------
+
+  // Cada palavra digitada vira uma condição "E"; dentro dela, basta casar com um dos campos.
+  // A comparação de texto ignora maiúsculas/minúsculas e acentos conforme a collation do MySQL.
+  // CPF/CNPJ são gravados só com dígitos, então termos como "123.456" também são testados só com dígitos.
+  montarFiltrosDeBusca(busca?: string) {
+    const palavras = (busca ?? '').trim().split(/\s+/).filter(Boolean).slice(0, 5);
+
+    // O Prisma não escapa os curingas do LIKE: sem isso, "%" ou "_" casariam com qualquer registro
+    const escaparLike = (texto: string) => texto.replace(/[\\%_]/g, '\\$&');
+
+    return palavras.map((palavra) => {
+      const digitos = palavra.replace(/\D/g, '');
+      const pareceDocumento = digitos.length > 0 && /^[\d.\-/]+$/.test(palavra);
+      const termo = escaparLike(palavra);
+      const termoDocumento = pareceDocumento ? digitos : termo;
+
+      return {
+        OR: [
+          { email: { contains: termo } },
+          { telefone: { contains: termo } },
+          { pessoaFisica: { is: { nome: { contains: termo } } } },
+          { pessoaFisica: { is: { cpf: { contains: termoDocumento } } } },
+          { pessoaJuridica: { is: { razaoSocial: { contains: termo } } } },
+          { pessoaJuridica: { is: { cnpj: { contains: termoDocumento } } } },
+        ],
+      };
+    });
+  }
+
+  //----------------------------------------
   // LISTAR
   //----------------------------------------
 
@@ -37,6 +69,7 @@ export class LocatarioService {
             contains: query.email,
           }
         : undefined,
+      AND: this.montarFiltrosDeBusca(query.busca),
     };
 
     const [data, total] = await Promise.all([
